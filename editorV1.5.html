@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <title>editorV1.5_修改本地上传</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css">
+    <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+</head>
+<style>
+
+body {
+    min-width: 480px;
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+i{
+    color: #333;
+}
+
+.container {
+    width: 80%;
+    margin: 10px auto;
+    position: relative;
+}
+
+#main {
+    position: relative;
+    top: -14px;
+    left: 0;
+    display: block;
+    width: 80%;
+    min-height: 280px;
+    margin: 0 auto;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    outline: none;
+    overflow: hidden;
+}
+
+p {
+    margin: 0;
+    padding: 0;
+}
+
+input{
+    width: 40px;
+    height: 18px;
+    position: relative;
+    top: 0;
+    left: 0;
+    border: 1px solid #777;
+    background-color: #eeeeee;
+    border-radius: 8%;
+    overflow: hidden;
+}
+#localFile{
+    width: 34px;
+    height: 21px;
+}
+input[type="file"]{
+     position: absolute; 
+     top: 0px; 
+     left: 0px; 
+     width: 34px; 
+     height: 30px;
+     opacity: 0;
+
+}
+button{
+    position: relative;
+    top: -7px;
+    left: 0;
+    margin-top: 4px;
+}
+select{
+     position: relative;
+    top: -7px;
+    left: 0;
+    margin-top: 4px;
+}
+</style>
+<body>
+    <div class="container">
+        <form action="#">
+            <button  value="大标题" id="maintitle"><i class="icon-file-alt" aria-hidden="true"></i></button>
+            <button value="正文" id="content"><i class="icon-file-text-alt"></i></button>
+            <button value="加粗" id="bold"><i class="icon-bold"></i></button>
+            <button value="倾斜" id="italic"><i class="icon-italic"></i></button>
+            <button value="倾斜" id="underline"><i class="icon-underline"></i></button>
+            <button value="格式化" id="removeFormat"><i class="icon-eraser"></i></button>
+            <button value="有序" id="InsertOrderedList"><i class="icon-list-ol"></i></button>
+            <button value="无序" id="InsertUnorderedList"><i class="icon-list-ul"></i></button>
+            <button value="left" id="JustifyLeft"><i class="icon-align-left"></i></button>
+            <button value="center" id="JustifyCenter"><i class="icon-align-center"></i></button>
+            <button value="right" id="JustifyRight"><i class="icon-align-right"></i></button>
+            <select name="" id="fontList">
+                <option value="宋体">宋体</option>
+                <option value="微软雅黑">微软雅黑</option>
+                <option value="黑体">黑体</option>
+                <option value="Arial">Arial</option>
+                <option value="Courier">Courier</option>
+                <option value="Sans-serif">Sans-serif</option>
+                <option value="Verdana">Verdana</option>
+                <option value="Times New Roman">Times New Roman</option>
+            </select>
+            <select name="" id="fontsize">
+                <option value="1">12px</option>
+                <option selected="selected" value="3">14px</option>
+                <option value="4">18px</option>
+                <option value="5">24px</option>
+                <option value="6">32px</option>
+                <option value="7">48px</option>
+            </select>
+            <input type="color" value="颜色" id="color">
+            <button value="添加链接" id="createLink"><i class="icon-link"></i></button>
+            <button value="取消链接" id="unlink"><i class="icon-unlink"></i></button>
+            <button value="webimg" id="img"><i class="icon-globe"></i></button>
+            <button value="添加图片" id="localFile"class="ipt_box ipt_img">
+                <i class="icon-picture"></i> 
+                <input type="file"  id="load_file" accept="image/*" >
+            </button>
+            <button value="code" id="code"><i class="icon-code"></i></button>
+        </form>
+
+    </div>
+    <div id="main" contenteditable="true" onfocus="true">请输入文字...</div>
+</body>
+<script>
+
+
+    /*插入图片*/
+    /*function loadfile(){
+        var _img = document.createElement('img')
+        _img.src = 'http://www.baidu.com/img/baidu_jgylogo3.gif'
+        console.log(_img)
+    }*/
+    var comm_fun = {
+        hideSetting: function () {
+            $(".mask").fadeOut();
+            $(".pop_setting, .pop_box").fadeOut();
+
+        },
+        popAlert : function(config){
+            comm_fun.popHideQuick();
+            var $mask = $('<div class="mask mask_alert fLayer"/>').appendTo(window.top.document.body);
+            var $pop_alert =  $('<div class="pop_box pop_alter fLayer"/>').appendTo(window.top.document.body);
+            var html = "";
+            html += '<a href="#" class="btn_close" title="关闭">关闭</a></div>';
+            html += '<div class="cnt"><p class="txt">'+ config.msg +'</p></div>';
+            html += '<p class="btn_bar"><a href="javascript:;" class="btn btn_enter">确定</a></p>';
+            $pop_alert.html(html);
+            $mask.delay(50).fadeIn();
+            $pop_alert.delay(50).fadeIn();
+            $pop_alert.find(".btn_enter").on("click",function(){
+                if(config.callback)config.callback();
+            });
+
+        },
+        popLoad : function(msg){
+            comm_fun.popHideQuick();
+            var $pop_load = $('<div class="pop_box pop_load fLayer"/>').appendTo(window.top.document.body);
+            var html = "";
+            html += '<img src="images/loading.gif">';
+            html += '<p>'+ msg +'</p>';
+            $pop_load.html(html);
+            $pop_load.fadeIn();
+            return $pop_load;
+        },
+        getFileSize: function (ipt) {
+            var size = 0;
+            if (ipt.files[0]) {
+                size = ipt.files[0].size;
+            } else {
+                var fileSystem = new ActiveXObject("Scripting.FileSystemObject");
+                var file = fileSystem.GetFile($(ipt).val());
+                size = file.Size;
+            }
+            return Math.ceil(size / 1024);
+        },
+        popHideQuick : function(className){
+            var $pop_layer = $(top.document.body,parent.document.body,document.body).find(".fLayer");
+            $pop_layer.each(function(){
+                $(this).remove();
+            });
+            return false;
+        },
+    };
+    var fun ={
+        imgSelOk:function(){
+            var _box;
+            if($(_img).parent("button").length > 0){
+                _box = $(_img).parent("button");
+                $(_img).attr("src", _src);
+                _box.find("input[type='hidden']").val(_src);
+            }
+            else if($(_img).parent(".navi_icon").length > 0){
+                _box = $(_img).parent(".navi_icon");
+                $(_img).attr("src", _src);
+                _box.find("input[name='icon']").val(_src);
+            }
+        }
+    }
+
+    var evt = {
+        fileChange: function () {
+            var _acceptFile = "jpg|gif|png",
+                _img = $(this).parents("button").find("img"),
+                _input = this,
+                _max_size = 1024,//$img_box.attr("data-maxSize");5m
+                _elementId = $(this).attr("id"),
+                _can_show = true;
+            var $load;
+           /* if (!form_fun.checkFIleType(_acceptFile, $(_input).val())) {
+                comm_fun.popAlert({msg: "选择的文件类型不正确，只能选择图片类型文件"});
+                $(_input).val("");
+                _can_show = false;
+                return;
+            }*/
+            if ($.isNumeric(_max_size) && comm_fun.getFileSize(this) > _max_size) {
+                comm_fun.popAlert({msg: "选择的文件超过了限制大小" + (_max_size / 1024) + "M，请重新选择图片"});
+                $(_input).val("");
+                _can_show = false;
+                return;
+            }
+            if (_can_show == true) {
+                $load = comm_fun.popLoad("图片传输中...");
+               /* $.ajaxFileUpload({
+                    type:'POST',
+                    url:query_url.upload_image,
+                    fileElementId:_elementId,
+                    dataType:'json',
+                    secureuri:false,//一般设置为false
+                    success:function(data){*/
+                        $load.remove();
+                        //需要真实数据把下面data注销即可
+                        var data = {
+                            "result":"http://www.baidu.com/img/baidu_jgylogo3.gif"
+                        }
+                       if (0 == data.code) {
+                           console.info(data.result);
+                            fun.imgSelOk(data.result, _img);
+                        } else {
+                            $load.remove();
+                            comm_fun.popAlert({msg: "本地上传失败"});
+                        }
+
+                /*    },
+                    error:function(data){
+                        $load.remove();
+                        comm_fun.popAlert({msg:"上传失败"});
+                    }
+                });*/
+            }
+        }
+    }
+    /*页面载入确认*/
+    if (document.readyState == "complete") {
+        document.getElementById("main").focus();
+    }
+    function getSelectionText() {
+        //流行浏览器支持
+        if (window.getSelection) {
+            return window.getSelection().toString();
+            //getseletion返回是一个getselection的对象 需要转化字符串
+            //判断IE支持
+        } else if (document.selection && document.selection.createRange) {
+            return document.selection.createRange().text;
+        }
+        return '';
+        //当按下按钮一  将选中的文字变颜色
+        selection ? alert("选中有数值") : alert("没选中内容");
+    }
+    document.execCommand("2D-Position", "false", "true");
+    /*将光标所在段落修改为一级标题*/
+    $('#maintitle').click(function() {
+        // document.execCommand('formatBlock', true, 'h1');  
+         document.execCommand('bold')
+         document.execCommand('Fontsize', false, '6')
+         // if($('#main b').css(fontsize))
+         return false;
+    });
+    /*将光标所在块修改为段落*/
+    $('#content').click(function() {
+        // document.execCommand('formatBlock', true, 'p');
+         document.execCommand('Fontsize', false, '1')
+          
+    });
+    var click_for = ['bold','italic','underline','unlink','InsertOrderedList','InsertUnorderedList','JustifyLeft','JustifyCenter','JustifyRight'];
+    for (var i = 0; i < click_for.length; i++) {
+        $("#"+click_for[i]).click(function(_id) {
+             _id = this.id;
+             return document.execCommand(_id);
+        });
+    } 
+
+    /*为所选文字加链接*/
+    $('#createLink').click(function() {
+        addLink();
+        /*document.execCommand('createLink', true, sLinkURL);*/
+    });
+   
+    /*对当前字体样式格式化*/
+    $('#removeFormat').click(function() {
+        document.execCommand('removeFormat', true); 
+    });
+    
+     
+    /*弹出图片地址框*/
+    $('#img').click(function() {
+        addimg();
+    });
+
+    /*字体字号设置*/   
+    $('#fontsize').click(function() {
+        $('#fontsize').change(function() {
+            document.execCommand('Fontsize', false, this.value)
+        });
+    });
+    /*字体颜色设置*/
+    $('#color').click(function() {
+        document.getElementById('color').onchange = function() {
+            document.execCommand('ForeColor', true, this.value);
+            $("#main li").css({color: this.value});
+        };
+
+    });
+    /*字体样式设置*/
+    $('#fontList').change(function() {
+        document.execCommand('FontName', true, this.value)
+    }); 
+    /*code设置*/
+    $('#code').click(function() {
+       $("#main").text($("#main").html())
+       $(this).attr('disabled', 'disabled').children('i').css("color","#09f")
+    });
+
+    /*需要定义属性的js*/
+
+    function addLink() {
+        var linkURL = prompt('请输入跳转链接:', 'http://');
+        var sText = document.getSelection();
+        if (linkURL!=null && linkURL!=""&&linkURL!="http://"){
+            document.execCommand('insertHTML', false, '<a href="' + linkURL + '" target="_blank">' + sText + '</a>');
+        }
+        else{
+            console.log('您未定义任何链接')
+        }
+    }
+    function addimg() {
+        var imgURL = prompt('请输入图片链接:', 'http://');
+        var sIMG = document.getSelection();
+
+        if (imgURL!=null && imgURL!=""){
+            document.execCommand('insertHTML', true, '<img src="' + imgURL + '" target="_blank">' + sIMG);
+        }
+        else{
+            console.log('您未插入任何图片')
+        }
+       
+        /*http://www.baidu.com/img/baidu_jgylogo3.gif*/
+    }
+        /*插入图片*/
+        $(".ipt_img").click(function(e){
+            if(e.target.tagName == ("SPAN")){
+                $(this).find("input").click();
+            }
+        });
+        $(".ipt_img").find("input").change(function(){
+            var files = this.files[0];
+            if(!/image\/\w+/.test(files.type)){  
+                alert("只能选择图片文件！");  
+                return false;  
+            }  
+            var reader = new FileReader(); //将文件以Data URL形式读入页面 
+            reader.readAsDataURL(files);  
+            reader.onload=function(e){
+                // $(".ipt_img").find("span").addClass("nobg").html("<img src='" + this.result +"' alt='' width='100%' />"); 
+                $("#main").addClass("nobg").append("<img src='" + this.result +"' alt='' width='inhert' />"); 
+            } 
+        });
+
+         $("body").on("change", "input[type='file']", evt.fileChange);
+        $(document.body).on("click", ".mask, .pop_box .btn_cancel, .pop_box .btn_enter", comm_fun.hideSetting);
+
+         $(".btn_enter").click(function() {
+           $('.pop_box , .mask').css({
+               display: 'none'
+           });
+         });
+
+</script>
+
+</html>
